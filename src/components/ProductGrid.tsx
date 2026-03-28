@@ -21,7 +21,7 @@ const products = [
     name: "Cherry Blossom",
     shape: "Almond",
     price: 26.99,
-    images: [nail4, nail1],
+    images: [nail1, nail4],
     rating: 4.9,
     isNew: true,
     description: "Soft pink blossoms with delicate floral accents. A dreamy, feminine set perfect for any occasion. Each set includes 10 nails, nail glue, and a mini file.",
