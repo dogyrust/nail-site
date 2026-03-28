@@ -1,10 +1,7 @@
 import { ShoppingBag, X, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -17,36 +14,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
 export function CartDrawer() {
-  const { cartItems, removeFromCart, updateQuantity, cartCount, cartTotal, clearCart } = useCart();
-  const [isCheckoutStep, setIsCheckoutStep] = useState(false);
-  const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '' });
-  const [handPhoto, setHandPhoto] = useState<File | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleFinalSubmit = () => {
-    setIsSubmitting(true);
-    // Simulate sending email and verifying order
-    const promise = new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    import("sonner").then(({ toast }) => {
-      toast.promise(promise, {
-        loading: 'Sending order to MOCK-EMAIL@example.com...',
-        success: "Order placed successfully! We'll email you once we verify your deposit. 💜",
-        error: 'Error processing order',
-      });
-      
-      promise.then(() => {
-        setIsSubmitting(false);
-        setIsCheckoutStep(false);
-        setCustomerDetails({ name: '', email: '', address: '' });
-        setHandPhoto(null);
-        clearCart();
-      });
-    });
-  };
+  const { cartItems, removeFromCart, updateQuantity, cartCount, cartTotal } = useCart();
+  const navigate = useNavigate();
 
   return (
-    <Sheet onOpenChange={(open) => !open && setIsCheckoutStep(false)}>
+    <Sheet>
       <SheetTrigger asChild>
         <button aria-label="Cart" className="relative transition-transform hover:scale-105">
           <ShoppingBag size={20} />
@@ -60,113 +32,18 @@ export function CartDrawer() {
       <SheetContent className="flex w-full flex-col sm:max-w-md border-l-secondary/20 bg-card/95 backdrop-blur-xl p-4 sm:p-6" style={{ height: '100dvh' }}>
         <SheetHeader className="px-1 text-left">
           <SheetTitle className="flex items-center gap-2 font-display text-2xl font-bold italic">
-            <ShoppingBag className="text-primary" /> {isCheckoutStep ? 'Checkout' : 'Your Bag'}
+            <ShoppingBag className="text-primary" /> Your Bag
           </SheetTitle>
         </SheetHeader>
 
         <div className="flex flex-1 flex-col overflow-hidden">
-          {cartItems.length === 0 && !isCheckoutStep ? (
+          {cartItems.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center space-y-4 opacity-60">
               <div className="rounded-full bg-secondary/20 p-6">
                 <ShoppingBag size={48} className="text-secondary" />
               </div>
               <p className="font-body text-lg font-medium">Your bag is empty</p>
             </div>
-          ) : isCheckoutStep ? (
-            <ScrollArea className="flex-1 px-1 mt-4">
-              <div className="space-y-6 pb-6 pt-2">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="Johnny Doey" 
-                      value={customerDetails.name} 
-                      onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})} 
-                      className="text-base sm:text-sm h-12 sm:h-auto"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="johnny@example.com" 
-                      value={customerDetails.email} 
-                      onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})} 
-                      className="text-base sm:text-sm h-12 sm:h-auto"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address" className="text-sm font-semibold">Shipping Address</Label>
-                    <Textarea 
-                      id="address" 
-                      placeholder="123 Nail Blvd, Beauty City, NY 10001" 
-                      value={customerDetails.address} 
-                      onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})} 
-                      className="resize-none h-24 text-base sm:text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="handPhoto" className="text-sm font-semibold">
-                      📸 Photo of Your Hand <span className="text-destructive">*</span>
-                    </Label>
-                    <p className="text-xs text-muted-foreground">Please send a clear photo of your hand (palm side up) so Gracie can size your nails perfectly.</p>
-                    <div className="relative">
-                      <input
-                        id="handPhoto"
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setHandPhoto(e.target.files?.[0] ?? null)}
-                      />
-                      <label
-                        htmlFor="handPhoto"
-                        className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-5 text-sm font-medium transition-colors ${
-                          handPhoto
-                            ? 'border-primary bg-primary/5 text-primary'
-                            : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-primary/5'
-                        }`}
-                      >
-                        {handPhoto ? (
-                          <>
-                            <span>✅</span>
-                            <span className="truncate max-w-[200px]">{handPhoto.name}</span>
-                          </>
-                        ) : (
-                          <>
-                            <span>📷</span>
-                            <span>Tap to upload hand photo</span>
-                          </>
-                        )}
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 space-y-4">
-                  <div>
-                    <h4 className="font-display text-lg font-bold text-primary">Required: $10 Deposit</h4>
-                    <p className="text-sm font-body text-muted-foreground mt-1 leading-relaxed">
-                      To begin creating your custom set, please send a $10 deposit to our Venmo account. Your order will not begin until the deposit is received!
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center justify-center bg-background/80 p-3 rounded-lg border border-primary/10 overflow-hidden">
-                    <span className="font-mono font-bold text-base sm:text-lg tracking-tight truncate">@MOCK-VENMO-HANDLE</span>
-                  </div>
-                  
-                  <Button 
-                    variant="outline" 
-                    className="w-full bg-[#008CFF] text-white hover:bg-[#007add] border-none font-bold h-12" 
-                    onClick={() => window.open('https://venmo.com', '_blank')}
-                  >
-                    Open Venmo App
-                  </Button>
-                </div>
-              </div>
-            </ScrollArea>
           ) : (
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-6 pt-6 -mx-1 px-1">
@@ -219,7 +96,7 @@ export function CartDrawer() {
           )}
         </div>
 
-        {cartItems.length > 0 && !isCheckoutStep && (
+        {cartItems.length > 0 && (
           <div className="space-y-4 pt-4 mt-auto">
             <Separator />
             <div className="space-y-1.5 px-1">
@@ -238,37 +115,10 @@ export function CartDrawer() {
             </div>
             <SheetFooter className="mt-4 pb-4 sm:pb-0">
               <Button 
-                onClick={() => setIsCheckoutStep(true)}
+                onClick={() => navigate("/checkout")}
                 className="w-full rounded-full bg-primary py-7 sm:py-6 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
                 Proceed to Checkout
-              </Button>
-            </SheetFooter>
-          </div>
-        )}
-
-        {isCheckoutStep && (
-          <div className="space-y-4 pt-4 mt-auto">
-            <Separator />
-            <div className="flex justify-between font-display text-xl sm:text-2xl font-bold px-1 pt-2">
-              <span>Order Total</span>
-              <span className="text-primary">${cartTotal.toFixed(2)}</span>
-            </div>
-            <SheetFooter className="px-1 pb-6 sm:pb-0 flex-col gap-3 mt-2">
-              <Button 
-                onClick={handleFinalSubmit}
-                disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || isSubmitting}
-                className="w-full rounded-full bg-primary py-7 sm:py-6 font-display text-lg sm:text-xl font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                I've Paid $10 & Submit
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => setIsCheckoutStep(false)}
-                className="w-full rounded-full h-12"
-                disabled={isSubmitting}
-              >
-                Back to Cart
               </Button>
             </SheetFooter>
           </div>
