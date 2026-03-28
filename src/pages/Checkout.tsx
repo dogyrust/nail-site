@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, Trash2, Plus, Minus, CreditCard, Camera } from "lucide-react";
+import { ChevronLeft, Trash2, Plus, Minus, CreditCard, Camera, UploadCloud } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,12 @@ const Checkout = () => {
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '' });
   const [handPhoto, setHandPhoto] = useState<File | null>(null);
+  const [customDescription, setCustomDescription] = useState('');
+  const [inspoPhotos, setInspoPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Check if any item in the cart is the Custom Set
+  const hasCustomSet = cartItems.some(item => item.id === "5" || item.name.toLowerCase().includes("custom"));
 
   // Redirect to home if cart is empty
   if (cartItems.length === 0 && !isSubmitting) {
@@ -43,6 +48,8 @@ const Checkout = () => {
         setIsSubmitting(false);
         setCustomerDetails({ name: '', email: '', address: '' });
         setHandPhoto(null);
+        setCustomDescription('');
+        setInspoPhotos([]);
         clearCart();
         navigate("/");
       });
@@ -166,33 +173,117 @@ const Checkout = () => {
             </div>
           </div>
 
+          {hasCustomSet && (
+            <div className="space-y-6 bg-card rounded-2xl border border-border/50 p-6 md:p-8 shadow-sm">
+              <h2 className="font-display text-xl font-bold flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-sm">3</span>
+                Custom Nail Details
+              </h2>
+              
+              <div className="space-y-6 pt-2">
+                <div className="space-y-3">
+                  <Label htmlFor="customDesc" className="text-sm font-semibold">
+                    What are you looking for? <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Describe your dream nails! Mention colors, themes, patterns, or specific designs you want. (Price will be finalized between $25-$40 based on complexity).
+                  </p>
+                  <Textarea 
+                    id="customDesc" 
+                    placeholder="E.g., I want an aura effect with hot pink and black, plus some silver star charms..." 
+                    value={customDescription} 
+                    onChange={(e) => setCustomDescription(e.target.value)} 
+                    className="resize-none h-32 bg-background"
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold flex items-center gap-2">
+                    <UploadCloud size={16} className="text-primary" />
+                    Inspiration Photos (Optional)
+                  </Label>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Upload any pictures of designs, colors, or vibes you want to use as inspiration.
+                  </p>
+                  <div className="relative mt-2">
+                    <input
+                      id="inspoPhotos"
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files) {
+                          setInspoPhotos(Array.from(e.target.files));
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor="inspoPhotos"
+                      className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-8 transition-all ${
+                        inspoPhotos.length > 0
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5'
+                      }`}
+                    >
+                      {inspoPhotos.length > 0 ? (
+                        <>
+                          <div className="rounded-full bg-primary/20 p-3">
+                            <span className="text-xl">✅</span>
+                          </div>
+                          <span className="font-medium text-foreground text-center">
+                            {inspoPhotos.length} {inspoPhotos.length === 1 ? 'photo' : 'photos'} selected
+                          </span>
+                          <span className="text-xs text-primary font-semibold uppercase tracking-wider">Change Photos</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="rounded-full bg-secondary/30 p-4">
+                            <UploadCloud size={24} className="text-secondary-foreground" />
+                          </div>
+                          <div className="text-center">
+                            <span className="font-medium text-foreground block">Select inspiration photos</span>
+                            <span className="text-xs mt-1 block">You can select multiple images</span>
+                          </div>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-6 bg-card rounded-2xl border border-primary/20 bg-primary/5 p-6 md:p-8 shadow-sm">
             <h2 className="font-display text-xl font-bold flex items-center gap-2 text-primary">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm">3</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-primary text-sm">
+                {hasCustomSet ? "4" : "3"}
+              </span>
               Payment Deposit
             </h2>
 
             <div className="space-y-6 pt-2">
               <p className="text-base font-body text-muted-foreground leading-relaxed">
-                To secure your order and begin creating your custom set, please send a <strong className="text-foreground">$10 deposit</strong> to our Venmo account. Your order will not begin until the deposit is received!
+                To secure your order, please send a <strong className="text-foreground">$10 deposit</strong> to my CashApp. 
+                {hasCustomSet ? " For custom sets, the remaining balance ($15-$30 depending on complexity) will be due before shipping." : ""} Your order will not begin until the deposit is received!
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-background p-5 rounded-xl border border-primary/10">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-[#008CFF]/10 flex items-center justify-center text-[#008CFF]">
-                    <CreditCard size={24} />
+                  <div className="h-12 w-12 rounded-full bg-[#00D632]/10 flex items-center justify-center text-[#00D632]">
+                    <span className="font-bold text-2xl">$</span>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground font-medium">Venmo Handle</p>
-                    <span className="font-mono font-bold text-xl tracking-tight">@MOCK-VENMO-HANDLE</span>
+                    <p className="text-sm text-muted-foreground font-medium">CashApp Tag</p>
+                    <span className="font-mono font-bold text-xl tracking-tight">$YourCashTag</span>
                   </div>
                 </div>
                 
                 <Button 
-                  className="w-full sm:w-auto bg-[#008CFF] text-white hover:bg-[#007add] border-none font-bold rounded-full px-6" 
-                  onClick={() => window.open('https://venmo.com', '_blank')}
+                  className="w-full sm:w-auto bg-[#00D632] text-white hover:bg-[#00b52a] border-none font-bold rounded-full px-6" 
+                  onClick={() => window.open('https://cash.app/$YourCashTag', '_blank')}
                 >
-                  Open Venmo App
+                  Open CashApp
                 </Button>
               </div>
             </div>
@@ -273,15 +364,15 @@ const Checkout = () => {
               <div className="pt-6">
                 <Button 
                   onClick={handleFinalSubmit}
-                  disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || isSubmitting}
+                  disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || (hasCustomSet && !customDescription) || isSubmitting}
                   className="w-full rounded-full bg-primary py-7 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {isSubmitting ? "Processing..." : "I've Paid $10 & Submit Order"}
                 </Button>
                 
-                {(!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto) && (
+                {(!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || (hasCustomSet && !customDescription)) && (
                   <p className="text-xs text-center text-muted-foreground mt-4 font-medium">
-                    Please fill out all required fields and upload a hand photo to continue.
+                    Please fill out all required fields {hasCustomSet ? "(including custom nail details)" : ""} and upload a hand photo to continue.
                   </p>
                 )}
               </div>
