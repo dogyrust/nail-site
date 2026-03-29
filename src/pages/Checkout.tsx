@@ -193,7 +193,7 @@ const Checkout = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-sm font-semibold">Shipping Address</Label>
+                <Label htmlFor="address" className="text-sm font-semibold">Shipping Address <span className="text-destructive">*</span></Label>
                 <Textarea 
                   id="address" 
                   placeholder="123 Nail Blvd, Beauty City, NY 10001" 
