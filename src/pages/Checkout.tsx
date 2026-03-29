@@ -32,19 +32,49 @@ const Checkout = () => {
     );
   }
 
-  const handleFinalSubmit = () => {
+  const handleFinalSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate sending email and verifying order
-    const promise = new Promise((resolve) => setTimeout(resolve, 2000));
     
-    import("sonner").then(({ toast }) => {
-      toast.promise(promise, {
-        loading: 'Sending order...',
-        success: "Order placed successfully! We'll email you once we verify your deposit. 💜",
-        error: 'Error processing order',
+    // Create form data payload for FormSubmit
+    const formData = new FormData();
+    formData.append("_subject", `New Nail Order from ${customerDetails.name}`);
+    formData.append("_captcha", "false");
+    formData.append("Name", customerDetails.name);
+    formData.append("Email", customerDetails.email);
+    formData.append("Shipping Address", customerDetails.address);
+    formData.append("Order Total", `$${cartTotal.toFixed(2)}`);
+    
+    // Format cart items
+    const itemsList = cartItems.map(item => 
+      `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
+    ).join('\n');
+    formData.append("Items Ordered", itemsList);
+
+    if (hasCustomSet) {
+      formData.append("Custom Nail Description", customDescription);
+    }
+
+    if (handPhoto) {
+      formData.append("Hand_Photo", handPhoto);
+    }
+
+    if (inspoPhotos.length > 0) {
+      inspoPhotos.forEach((photo, index) => {
+        formData.append(`Inspiration_Photo_${index + 1}`, photo);
       });
-      
-      promise.then(() => {
+    }
+
+    try {
+      const response = await fetch("https://formsubmit.co/ajax/gracies.nails08@gmail.com", {
+        method: "POST",
+        body: formData
+      });
+
+      if (response.ok) {
+        import("sonner").then(({ toast }) => {
+          toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
+        });
+        
         setIsSubmitting(false);
         setCustomerDetails({ name: '', email: '', address: '' });
         setHandPhoto(null);
@@ -52,8 +82,15 @@ const Checkout = () => {
         setInspoPhotos([]);
         clearCart();
         navigate("/");
+      } else {
+        throw new Error('Form submission failed');
+      }
+    } catch (error) {
+      import("sonner").then(({ toast }) => {
+        toast.error("Error processing order. Please try again.");
       });
-    });
+      setIsSubmitting(false);
+    }
   };
 
   return (
