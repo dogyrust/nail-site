@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+const nodemailer = require("nodemailer");
 
 const parseBody = (req) =>
   new Promise((resolve, reject) => {
@@ -8,7 +8,7 @@ const parseBody = (req) =>
     req.on("error", reject);
   });
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   try {
