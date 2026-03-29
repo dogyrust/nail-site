@@ -27,8 +27,9 @@ const Checkout = () => {
   const activeTotal = isDirectBuy && directBuyItem
     ? directBuyItem.price
     : cartTotal;
-  const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '' });
+  const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '', cashapp: '' });
   const [handPhoto, setHandPhoto] = useState<File | null>(null);
+  const [handPhoto2, setHandPhoto2] = useState<File | null>(null);
   const [customDescription, setCustomDescription] = useState('');
   const [inspoPhotos, setInspoPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,6 +62,7 @@ const Checkout = () => {
     
     formData.append("Name", customerDetails.name);
     formData.append("Email", customerDetails.email);
+    formData.append("CashApp Username", customerDetails.cashapp);
     formData.append("Shipping Address", customerDetails.address);
     formData.append("Order Total", `$${activeTotal.toFixed(2)}`);
     
@@ -75,7 +77,11 @@ const Checkout = () => {
     }
 
     if (handPhoto) {
-      formData.append("Hand_Photo", handPhoto, handPhoto.name);
+      formData.append("Hand_Photo_1", handPhoto, handPhoto.name);
+    }
+
+    if (handPhoto2) {
+      formData.append("Hand_Photo_2", handPhoto2, handPhoto2.name);
     }
 
     if (inspoPhotos.length > 0) {
@@ -98,8 +104,9 @@ const Checkout = () => {
         });
         
         setIsSubmitting(false);
-        setCustomerDetails({ name: '', email: '', address: '' });
+        setCustomerDetails({ name: '', email: '', address: '', cashapp: '' });
         setHandPhoto(null);
+        setHandPhoto2(null);
         setCustomDescription('');
         setInspoPhotos([]);
         if (!isDirectBuy) {
@@ -115,8 +122,9 @@ const Checkout = () => {
         toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
       });
       setIsSubmitting(false);
-      setCustomerDetails({ name: '', email: '', address: '' });
+      setCustomerDetails({ name: '', email: '', address: '', cashapp: '' });
       setHandPhoto(null);
+      setHandPhoto2(null);
       setCustomDescription('');
       setInspoPhotos([]);
       if (!isDirectBuy) {
@@ -175,6 +183,16 @@ const Checkout = () => {
                 </div>
               </div>
               <div className="space-y-2">
+                <Label htmlFor="cashapp" className="text-sm font-semibold">CashApp Username <span className="text-destructive">*</span></Label>
+                <Input
+                  id="cashapp"
+                  placeholder="$YourCashTag"
+                  value={customerDetails.cashapp}
+                  onChange={(e) => setCustomerDetails({...customerDetails, cashapp: e.target.value})}
+                  className="h-12 bg-background"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="address" className="text-sm font-semibold">Shipping Address</Label>
                 <Textarea 
                   id="address" 
@@ -213,42 +231,45 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                <div className="relative mt-2">
-                  <input
-                    id="handPhoto"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => setHandPhoto(e.target.files?.[0] ?? null)}
-                  />
-                  <label
-                    htmlFor="handPhoto"
-                    className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 transition-all ${
-                      handPhoto
-                        ? 'border-primary bg-primary/5 text-primary'
-                        : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                  >
-                    {handPhoto ? (
-                      <>
-                        <div className="rounded-full bg-primary/20 p-3">
+                <div className="grid grid-cols-2 gap-3 mt-2">
+                  {/* Photo 1 */}
+                  <div className="relative">
+                    <input id="handPhoto" type="file" accept="image/*" className="hidden" onChange={(e) => setHandPhoto(e.target.files?.[0] ?? null)} />
+                    <label htmlFor="handPhoto" className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-3 py-6 transition-all ${ handPhoto ? 'border-primary bg-primary/5' : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5' }`}>
+                      {handPhoto ? (
+                        <>
                           <span className="text-xl">✅</span>
-                        </div>
-                        <span className="font-medium text-foreground truncate max-w-full px-4">{handPhoto.name}</span>
-                        <span className="text-xs text-primary font-semibold uppercase tracking-wider">Change Photo</span>
-                      </>
-                    ) : (
-                      <>
-                        <div className="rounded-full bg-secondary/30 p-4">
-                          <Camera size={24} className="text-secondary-foreground" />
-                        </div>
-                        <div className="text-center">
-                          <span className="font-medium text-foreground block">Click to upload photo</span>
-                          <span className="text-xs mt-1 block">JPG, PNG, HEIC up to 10MB</span>
-                        </div>
-                      </>
-                    )}
-                  </label>
+                          <span className="font-medium text-foreground text-xs truncate max-w-full px-2 text-center">{handPhoto.name}</span>
+                          <span className="text-xs text-primary font-semibold">Change</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="rounded-full bg-secondary/30 p-3"><Camera size={20} className="text-secondary-foreground" /></div>
+                          <span className="font-medium text-foreground text-sm block text-center">Photo 1</span>
+                          <span className="text-xs text-muted-foreground">Palm side up</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                  {/* Photo 2 */}
+                  <div className="relative">
+                    <input id="handPhoto2" type="file" accept="image/*" className="hidden" onChange={(e) => setHandPhoto2(e.target.files?.[0] ?? null)} />
+                    <label htmlFor="handPhoto2" className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-3 py-6 transition-all ${ handPhoto2 ? 'border-primary bg-primary/5' : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5' }`}>
+                      {handPhoto2 ? (
+                        <>
+                          <span className="text-xl">✅</span>
+                          <span className="font-medium text-foreground text-xs truncate max-w-full px-2 text-center">{handPhoto2.name}</span>
+                          <span className="text-xs text-primary font-semibold">Change</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="rounded-full bg-secondary/30 p-3"><Camera size={20} className="text-secondary-foreground" /></div>
+                          <span className="font-medium text-foreground text-sm block text-center">Photo 2</span>
+                          <span className="text-xs text-muted-foreground">Side angle</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
@@ -451,7 +472,7 @@ const Checkout = () => {
               <div className="pt-6">
                 <Button 
                   type="submit"
-                  disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || (hasCustomSet && !customDescription) || isSubmitting}
+                  disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !customerDetails.cashapp || !handPhoto || !handPhoto2 || (hasCustomSet && !customDescription) || isSubmitting}
                   className="w-full rounded-full bg-primary py-7 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {isSubmitting ? "Processing..." : "I've Paid $10 & Submit Order"}
@@ -459,7 +480,7 @@ const Checkout = () => {
                 
                 {(!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || (hasCustomSet && !customDescription)) && (
                   <p className="text-xs text-center text-muted-foreground mt-4 font-medium">
-                    Please fill out all required fields {hasCustomSet ? "(including custom nail details)" : ""} and upload a hand photo to continue.
+                    Please fill out all required fields {hasCustomSet ? "(including custom nail details)" : ""} and upload both hand photos to continue.
                   </p>
                 )}
               </div>
