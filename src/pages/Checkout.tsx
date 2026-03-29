@@ -27,8 +27,20 @@ const Checkout = () => {
   const activeTotal = isDirectBuy && directBuyItem
     ? directBuyItem.price
     : cartTotal;
-  const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '', cashapp: '' });
+  const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '', state: '', cashapp: '' });
   const [handPhoto, setHandPhoto] = useState<File | null>(null);
+
+  const getShippingCost = (st: string): number => {
+    if (!st) return 0;
+    if (st === 'ME') return 4.00;
+    if (['NH','VT','MA','RI','CT'].includes(st)) return 5.00;
+    if (['NY','NJ','PA','MD','DE','VA','WV','DC'].includes(st)) return 6.00;
+    if (['HI','AK'].includes(st)) return 12.00;
+    return 8.00;
+  };
+
+  const shippingCost = getShippingCost(customerDetails.state);
+  const orderTotal = activeTotal + shippingCost;
   const [handPhoto2, setHandPhoto2] = useState<File | null>(null);
   const [customDescription, setCustomDescription] = useState('');
   const [inspoPhotos, setInspoPhotos] = useState<File[]>([]);
@@ -61,7 +73,9 @@ const Checkout = () => {
     formData.append("Email", customerDetails.email);
     formData.append("CashApp_Username", customerDetails.cashapp);
     formData.append("Shipping_Address", customerDetails.address);
-    formData.append("Order_Total", `$${activeTotal.toFixed(2)}`);
+    formData.append("State", customerDetails.state);
+    formData.append("Shipping_Cost", shippingCost === 0 ? 'TBD (no state selected)' : `$${shippingCost.toFixed(2)}`);
+    formData.append("Order_Total", `$${orderTotal.toFixed(2)}`);
     
     // Format items
     const itemsList = activeItems.map(item => 
@@ -99,7 +113,7 @@ const Checkout = () => {
         });
         
         setIsSubmitting(false);
-        setCustomerDetails({ name: '', email: '', address: '', cashapp: '' });
+        setCustomerDetails({ name: '', email: '', address: '', state: '', cashapp: '' });
         setHandPhoto(null);
         setHandPhoto2(null);
         setCustomDescription('');
@@ -117,7 +131,7 @@ const Checkout = () => {
         toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
       });
       setIsSubmitting(false);
-      setCustomerDetails({ name: '', email: '', address: '', cashapp: '' });
+      setCustomerDetails({ name: '', email: '', address: '', state: '', cashapp: '' });
       setHandPhoto(null);
       setHandPhoto2(null);
       setCustomDescription('');
@@ -191,11 +205,28 @@ const Checkout = () => {
                 <Label htmlFor="address" className="text-sm font-semibold">Shipping Address <span className="text-destructive">*</span></Label>
                 <Textarea 
                   id="address" 
-                  placeholder="123 Nail Blvd, Beauty City, NY 10001" 
+                  placeholder="123 Main St, Portland, ME 04101" 
                   value={customerDetails.address} 
                   onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})} 
                   className="resize-none h-24 bg-background"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state" className="text-sm font-semibold">State <span className="text-destructive">*</span></Label>
+                <select
+                  id="state"
+                  value={customerDetails.state}
+                  onChange={(e) => setCustomerDetails({...customerDetails, state: e.target.value})}
+                  className="h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Select your state...</option>
+                  <option value="AL">Alabama</option><option value="AK">Alaska (+$12)</option><option value="AZ">Arizona</option><option value="AR">Arkansas</option><option value="CA">California</option><option value="CO">Colorado</option><option value="CT">Connecticut</option><option value="DE">Delaware</option><option value="FL">Florida</option><option value="GA">Georgia</option><option value="HI">Hawaii (+$12)</option><option value="ID">Idaho</option><option value="IL">Illinois</option><option value="IN">Indiana</option><option value="IA">Iowa</option><option value="KS">Kansas</option><option value="KY">Kentucky</option><option value="LA">Louisiana</option><option value="ME">Maine ($4 shipping!)</option><option value="MD">Maryland</option><option value="MA">Massachusetts</option><option value="MI">Michigan</option><option value="MN">Minnesota</option><option value="MS">Mississippi</option><option value="MO">Missouri</option><option value="MT">Montana</option><option value="NE">Nebraska</option><option value="NV">Nevada</option><option value="NH">New Hampshire</option><option value="NJ">New Jersey</option><option value="NM">New Mexico</option><option value="NY">New York</option><option value="NC">North Carolina</option><option value="ND">North Dakota</option><option value="OH">Ohio</option><option value="OK">Oklahoma</option><option value="OR">Oregon</option><option value="PA">Pennsylvania</option><option value="RI">Rhode Island</option><option value="SC">South Carolina</option><option value="SD">South Dakota</option><option value="TN">Tennessee</option><option value="TX">Texas</option><option value="UT">Utah</option><option value="VT">Vermont</option><option value="VA">Virginia</option><option value="WA">Washington</option><option value="WV">West Virginia</option><option value="WI">Wisconsin</option><option value="WY">Wyoming</option><option value="DC">Washington D.C.</option>
+                </select>
+                {customerDetails.state && (
+                  <p className="text-xs font-semibold text-primary mt-1">
+                    Shipping: {customerDetails.state === 'ME' ? '🐚 Local Maine rate' : customerDetails.state === 'HI' || customerDetails.state === 'AK' ? '✈️ Extended shipping' : '📦 Standard shipping'} — ${shippingCost.toFixed(2)}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -454,18 +485,20 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-muted-foreground">Shipping</span>
-                  <span className="text-primary font-bold">Free</span>
+                  <span className={shippingCost > 0 ? 'font-bold' : 'text-muted-foreground'}>
+                    {customerDetails.state ? `$${shippingCost.toFixed(2)}` : 'Select state'}
+                  </span>
                 </div>
                 <div className="flex justify-between font-display text-2xl font-bold pt-4 border-t border-border/50">
                   <span>Total</span>
-                  <span className="text-primary">${activeTotal.toFixed(2)}</span>
+                  <span className="text-primary">${orderTotal.toFixed(2)}</span>
                 </div>
               </div>
 
               <div className="pt-6">
                 <Button 
                   type="submit"
-                  disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !customerDetails.cashapp || !handPhoto || !handPhoto2 || (hasCustomSet && !customDescription) || isSubmitting}
+                  disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !customerDetails.state || !customerDetails.cashapp || !handPhoto || !handPhoto2 || (hasCustomSet && !customDescription) || isSubmitting}
                   className="w-full rounded-full bg-primary py-7 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   {isSubmitting ? "Processing..." : "I've Paid $10 & Submit Order"}
