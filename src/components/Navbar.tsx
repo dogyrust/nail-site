@@ -25,16 +25,21 @@ const Navbar = () => {
 
           {/* Center links */}
           <div className="hidden items-center gap-8 font-body text-sm font-medium uppercase tracking-widest lg:flex">
-            {["Shop All", "Press-Ons", "Nail Art"].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="text-foreground/70 transition-colors hover:text-primary relative group"
-              >
+            {(["Shop All", "Press-Ons"] as string[]).map((item) => (
+              <a key={item} href="#" className="text-foreground/70 transition-colors hover:text-primary relative group">
                 {item}
                 <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
               </a>
             ))}
+            <a
+              href="https://www.instagram.com/gracies_nails08?igsh=MXY0OGRxZHozcmUzYQ%3D%3D&utm_source=qr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground/70 transition-colors hover:text-primary relative group"
+            >
+              Nail Art
+              <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-primary transition-all group-hover:w-full" />
+            </a>
           </div>
 
           {/* Right */}
@@ -48,15 +53,19 @@ const Navbar = () => {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="border-t bg-card px-6 py-4 lg:hidden">
-            {["Shop All", "Press-Ons", "Nail Art"].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="block py-3 font-body text-sm font-medium uppercase tracking-widest text-foreground/70 transition-colors hover:text-primary"
-              >
+            {(["Shop All", "Press-Ons"] as string[]).map((item) => (
+              <a key={item} href="#" className="block py-3 font-body text-sm font-medium uppercase tracking-widest text-foreground/70 transition-colors hover:text-primary">
                 {item}
               </a>
             ))}
+            <a
+              href="https://www.instagram.com/gracies_nails08?igsh=MXY0OGRxZHozcmUzYQ%3D%3D&utm_source=qr"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block py-3 font-body text-sm font-medium uppercase tracking-widest text-foreground/70 transition-colors hover:text-primary"
+            >
+              Nail Art
+            </a>
           </div>
         )}
       </nav>
