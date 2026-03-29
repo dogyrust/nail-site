@@ -65,16 +65,45 @@ const Checkout = () => {
     `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
   ).join(', ');
 
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     const isValid = !!(customerDetails.name && customerDetails.email &&
       customerDetails.address && customerDetails.state && customerDetails.cashapp &&
       handPhoto && handPhoto2 && (!hasCustomSet || customDescription));
-    if (!isValid) {
-      e.preventDefault();
-      return;
-    }
+    if (!isValid) return;
+
     setIsSubmitting(true);
-    // Native multipart POST — browser handles file attachment
+
+    const formData = new FormData();
+    formData.append("Name", customerDetails.name);
+    formData.append("Email", customerDetails.email);
+    formData.append("CashApp_Username", customerDetails.cashapp);
+    formData.append("Shipping_Address", customerDetails.address);
+    formData.append("State", customerDetails.state);
+    formData.append("Shipping_Cost", shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'TBD');
+    formData.append("Order_Total", `$${orderTotal.toFixed(2)}`);
+    formData.append("Items_Ordered", itemsList);
+    if (hasCustomSet && customDescription) formData.append("Custom_Nail_Description", customDescription);
+    if (handPhoto) formData.append("Hand_Photo_1", handPhoto, handPhoto.name);
+    if (handPhoto2) formData.append("Hand_Photo_2", handPhoto2, handPhoto2.name);
+    inspoPhotos.forEach((p, i) => formData.append(`Inspiration_Photo_${i + 1}`, p, p.name));
+
+    try {
+      const res = await fetch("/api/submit-order", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Server error");
+      import("sonner").then(({ toast }) => toast.success("Order placed! We'll be in touch soon. 💜"));
+    } catch {
+      import("sonner").then(({ toast }) => toast.error("Something went wrong. Please email gracies.nails08@gmail.com directly."));
+    }
+
+    setIsSubmitting(false);
+    setCustomerDetails({ name: '', email: '', address: '', state: '', cashapp: '' });
+    setHandPhoto(null);
+    setHandPhoto2(null);
+    setCustomDescription('');
+    setInspoPhotos([]);
+    if (!isDirectBuy) clearCart();
+    navigate("/");
   };
 
   return (
@@ -89,14 +118,8 @@ const Checkout = () => {
 
       <form
         onSubmit={handleFinalSubmit}
-        action="https://getform.io/f/td6jwe6njmh"
-        method="POST"
-        encType="multipart/form-data"
         className="grid grid-cols-1 gap-12 lg:grid-cols-12"
       >
-        <input type="hidden" name="Shipping_Cost" value={shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'TBD'} />
-        <input type="hidden" name="Order_Total" value={`$${orderTotal.toFixed(2)}`} />
-        <input type="hidden" name="Items_Ordered" value={itemsList} />
         {/* Checkout Form */}
         <div className="lg:col-span-7 space-y-10 animate-fade-up">
           <div>
