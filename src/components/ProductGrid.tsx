@@ -21,7 +21,7 @@ import nailY2k from "@/assets/nail-y2k.jpg";
 const products = [
   {
     id: "1",
-    name: "Cherry Blossom",
+    name: "Monarch",
     shape: "Premade",
     price: 25,
     images: [nail1, nail4],
@@ -31,7 +31,7 @@ const products = [
   },
   {
     id: "2",
-    name: "Golden Sage",
+    name: "Olive Theory",
     shape: "Premade",
     price: 20,
     images: [nail2b, nail2, nail6, nail6b],
@@ -41,7 +41,7 @@ const products = [
   },
   {
     id: "3",
-    name: "Lavender Dream",
+    name: "Picnic Whimsy",
     shape: "Premade",
     price: 30,
     images: [nail7, nail7b, nail5, nail8, nail8b],
