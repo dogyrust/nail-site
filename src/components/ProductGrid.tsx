@@ -14,6 +14,7 @@ import nail7 from "@/assets/nail-7.jpg";
 import nail7b from "@/assets/nail-7b.jpg";
 import nail8 from "@/assets/nail-8.jpg";
 import nail8b from "@/assets/nail-8b.jpg";
+import customPlaceholder from "@/assets/custom-placeholder.svg";
 
 const products = [
   {
@@ -51,7 +52,7 @@ const products = [
     shape: "Almond",
     price: 25,
     priceRange: "$25 – $40",
-    images: [nail1, nail4, nail2b],
+    images: [customPlaceholder],
     rating: 5.0,
     isNew: true,
     description: "Fully custom press-on nails designed just for you! Choose your colors, patterns, and style. Price varies by complexity ($25–$40). After ordering, you'll upload a photo of your hand so Gracie can get your sizing perfect.",
