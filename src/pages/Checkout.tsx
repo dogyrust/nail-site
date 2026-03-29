@@ -246,7 +246,6 @@ const Checkout = () => {
                         <>
                           <div className="rounded-full bg-secondary/30 p-3"><Camera size={20} className="text-secondary-foreground" /></div>
                           <span className="font-medium text-foreground text-sm block text-center">Photo 1</span>
-                          <span className="text-xs text-muted-foreground">Palm side up</span>
                         </>
                       )}
                     </label>
@@ -265,7 +264,6 @@ const Checkout = () => {
                         <>
                           <div className="rounded-full bg-secondary/30 p-3"><Camera size={20} className="text-secondary-foreground" /></div>
                           <span className="font-medium text-foreground text-sm block text-center">Photo 2</span>
-                          <span className="text-xs text-muted-foreground">Side angle</span>
                         </>
                       )}
                     </label>
