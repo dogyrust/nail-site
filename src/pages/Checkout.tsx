@@ -65,6 +65,25 @@ const Checkout = () => {
     `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
   ).join(', ');
 
+  const compressPhoto = (file: File): Promise<{name: string; data: string; type: string}> =>
+    new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const maxDim = 1200;
+        const ratio = Math.min(maxDim / img.width, maxDim / img.height, 1);
+        canvas.width = Math.round(img.width * ratio);
+        canvas.height = Math.round(img.height * ratio);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const data = canvas.toDataURL('image/jpeg', 0.75).split(',')[1];
+        resolve({ name: file.name.replace(/\.[^.]+$/, '') + '.jpg', data, type: 'image/jpeg' });
+      };
+      img.src = url;
+    });
+
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const isValid = !!(customerDetails.name && customerDetails.email &&
@@ -74,26 +93,32 @@ const Checkout = () => {
 
     setIsSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("Name", customerDetails.name);
-    formData.append("Email", customerDetails.email);
-    formData.append("CashApp_Username", customerDetails.cashapp);
-    formData.append("Shipping_Address", customerDetails.address);
-    formData.append("State", customerDetails.state);
-    formData.append("Shipping_Cost", shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'TBD');
-    formData.append("Order_Total", `$${orderTotal.toFixed(2)}`);
-    formData.append("Items_Ordered", itemsList);
-    if (hasCustomSet && customDescription) formData.append("Custom_Nail_Description", customDescription);
-    if (handPhoto) formData.append("Hand_Photo_1", handPhoto, handPhoto.name);
-    if (handPhoto2) formData.append("Hand_Photo_2", handPhoto2, handPhoto2.name);
-    inspoPhotos.forEach((p, i) => formData.append(`Inspiration_Photo_${i + 1}`, p, p.name));
-
     try {
-      const res = await fetch("/api/submit-order", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Server error");
-      import("sonner").then(({ toast }) => toast.success("Order placed! We'll be in touch soon. 💜"));
+      const photoFiles = [handPhoto, handPhoto2, ...inspoPhotos].filter(Boolean) as File[];
+      const photos = await Promise.all(photoFiles.map(compressPhoto));
+
+      const payload = {
+        name: customerDetails.name,
+        email: customerDetails.email,
+        cashapp: customerDetails.cashapp,
+        address: customerDetails.address,
+        state: customerDetails.state,
+        shippingCost: shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'TBD',
+        orderTotal: `$${orderTotal.toFixed(2)}`,
+        items: itemsList,
+        customDesc: hasCustomSet ? customDescription : '',
+        photos,
+      };
+
+      const res = await fetch('/api/submit-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Server error');
+      import('sonner').then(({ toast }) => toast.success("Order placed! We'll be in touch soon. 💜"));
     } catch {
-      import("sonner").then(({ toast }) => toast.error("Something went wrong. Please email gracies.nails08@gmail.com directly."));
+      import('sonner').then(({ toast }) => toast.error('Something went wrong. Please email gracies.nails08@gmail.com directly.'));
     }
 
     setIsSubmitting(false);
@@ -103,7 +128,7 @@ const Checkout = () => {
     setCustomDescription('');
     setInspoPhotos([]);
     if (!isDirectBuy) clearCart();
-    navigate("/");
+    navigate('/');
   };
 
   return (
