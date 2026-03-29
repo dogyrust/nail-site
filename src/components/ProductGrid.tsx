@@ -15,6 +15,8 @@ import nail7b from "@/assets/nail-7b.jpg";
 import nail8 from "@/assets/nail-8.jpg";
 import nail8b from "@/assets/nail-8b.jpg";
 import customPlaceholder from "@/assets/custom-placeholder.svg";
+import nailCelestial from "@/assets/nail-celestial.jpg";
+import nailY2k from "@/assets/nail-y2k.jpg";
 
 const products = [
   {
@@ -51,7 +53,7 @@ const products = [
     name: "Midnight Galaxy",
     shape: "Premade",
     price: 30,
-    images: [customPlaceholder],
+    images: [nailCelestial],
     rating: 5.0,
     isNew: true,
     description: "Deep navy press-on nails adorned with intricate hand-painted gold celestial accents — stars, moons, swirls, and mandalas. A stunning statement set. Each set includes 10 nails, nail glue, and a mini file.",
@@ -61,7 +63,7 @@ const products = [
     name: "Y2K Dream",
     shape: "Premade",
     price: 35,
-    images: [customPlaceholder],
+    images: [nailY2k],
     rating: 5.0,
     isNew: true,
     description: "Bold Y2K-inspired press-on nails with colorful tiger stripes, leopard print, rainbow elements, and playful 3D charms. Maximum color, maximum fun. Each set includes 10 nails, nail glue, and a mini file.",
