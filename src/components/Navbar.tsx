@@ -25,7 +25,7 @@ const Navbar = () => {
 
           {/* Center links */}
           <div className="hidden items-center gap-8 font-body text-sm font-medium uppercase tracking-widest lg:flex">
-            {["Shop All", "Press-Ons", "Gel", "Nail Art", "New"].map((item) => (
+            {["Shop All", "Press-Ons", "Nail Art"].map((item) => (
               <a
                 key={item}
                 href="#"
@@ -48,7 +48,7 @@ const Navbar = () => {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="border-t bg-card px-6 py-4 lg:hidden">
-            {["Shop All", "Press-Ons", "Gel", "Nail Art", "New"].map((item) => (
+            {["Shop All", "Press-Ons", "Nail Art"].map((item) => (
               <a
                 key={item}
                 href="#"
