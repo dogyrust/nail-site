@@ -28,8 +28,7 @@ const ProductCard = ({ id, name, shape, price, salePrice, priceRange, image, rat
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart({ id, name, shape, price: salePrice || price, image });
-    navigate("/checkout");
+    navigate("/checkout", { state: { isDirectBuy: true, customItem: { id, name, shape, price: salePrice || price, image } } });
   };
 
   return (

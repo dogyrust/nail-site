@@ -32,9 +32,8 @@ const ProductModal = ({ id, name, shape, price, salePrice, priceRange, images, r
   };
 
   const handleBuyNow = () => {
-    addToCart({ id, name, shape, price: salePrice || price, image: images[0] });
     onClose();
-    navigate("/checkout");
+    navigate("/checkout", { state: { isDirectBuy: true, customItem: { id, name, shape, price: salePrice || price, image: images[0] } } });
   };
 
   return (

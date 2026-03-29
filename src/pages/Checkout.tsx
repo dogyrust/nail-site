@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { ChevronLeft, Trash2, Plus, Minus, CreditCard, Camera, UploadCloud } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
@@ -8,20 +8,36 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 
+import sizingEx1 from "@/assets/sizing-example-1.jpg";
+import sizingEx2 from "@/assets/sizing-example-2.jpg";
+
 const Checkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { cartItems, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
+  
+  // Support direct buy bypassing the cart
+  const isDirectBuy = location.state?.isDirectBuy;
+  const directBuyItem = location.state?.customItem;
+  
+  const activeItems = isDirectBuy && directBuyItem 
+    ? [{ ...directBuyItem, quantity: 1 }] 
+    : cartItems;
+    
+  const activeTotal = isDirectBuy && directBuyItem
+    ? directBuyItem.price
+    : cartTotal;
   const [customerDetails, setCustomerDetails] = useState({ name: '', email: '', address: '' });
   const [handPhoto, setHandPhoto] = useState<File | null>(null);
   const [customDescription, setCustomDescription] = useState('');
   const [inspoPhotos, setInspoPhotos] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Check if any item in the cart is the Custom Set
-  const hasCustomSet = cartItems.some(item => item.id === "5" || item.name.toLowerCase().includes("custom"));
+  // Check if any item in the active list is the Custom Set
+  const hasCustomSet = activeItems.some(item => item.id === "5" || item.name.toLowerCase().includes("custom"));
 
-  // Redirect to home if cart is empty
-  if (cartItems.length === 0 && !isSubmitting) {
+  // Redirect to home if no items
+  if (activeItems.length === 0 && !isSubmitting) {
     return (
       <div className="container flex min-h-[60vh] flex-col items-center justify-center space-y-6">
         <h2 className="font-display text-3xl font-bold">Your bag is empty</h2>
@@ -42,10 +58,10 @@ const Checkout = () => {
     formData.append("Name", customerDetails.name);
     formData.append("Email", customerDetails.email);
     formData.append("Shipping Address", customerDetails.address);
-    formData.append("Order Total", `$${cartTotal.toFixed(2)}`);
+    formData.append("Order Total", `$${activeTotal.toFixed(2)}`);
     
-    // Format cart items
-    const itemsList = cartItems.map(item => 
+    // Format items
+    const itemsList = activeItems.map(item => 
       `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
     ).join('\n');
     formData.append("Items Ordered", itemsList);
@@ -80,7 +96,9 @@ const Checkout = () => {
         setHandPhoto(null);
         setCustomDescription('');
         setInspoPhotos([]);
-        clearCart();
+        if (!isDirectBuy) {
+          clearCart();
+        }
         navigate("/");
       } else {
         throw new Error('Form submission failed');
@@ -169,6 +187,17 @@ const Checkout = () => {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Please send a clear photo of your hand (palm side up) flat on a table with a coin (like a quarter) next to it for scale. This helps Gracie size your nails perfectly!
                 </p>
+                
+                {/* Sizing Example Photos */}
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <div className="rounded-xl overflow-hidden border border-border">
+                    <img src={sizingEx1} alt="Sizing example with coin" className="w-full h-auto object-cover aspect-square" />
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-border">
+                    <img src={sizingEx2} alt="Sizing example with coin" className="w-full h-auto object-cover aspect-square" />
+                  </div>
+                </div>
+
                 <div className="relative mt-2">
                   <input
                     id="handPhoto"
@@ -336,7 +365,7 @@ const Checkout = () => {
             
             <div className="p-6 md:p-8 space-y-6">
               <div className="space-y-5 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
-                {cartItems.map((item) => (
+                {activeItems.map((item) => (
                   <div key={item.id} className="flex gap-4 group">
                     <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border">
                       <img
@@ -348,32 +377,38 @@ const Checkout = () => {
                     <div className="flex flex-1 flex-col py-0.5">
                       <div className="flex justify-between items-start">
                         <h4 className="font-display text-base font-bold line-clamp-2 pr-4">{item.name}</h4>
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                          aria-label="Remove item"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        {!isDirectBuy && (
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
                       </div>
                       <p className="font-body text-xs text-muted-foreground uppercase tracking-widest mt-1">{item.shape}</p>
                       
                       <div className="flex items-center justify-between mt-auto pt-2">
-                        <div className="flex items-center gap-1.5 rounded-full border border-border bg-background p-1">
-                          <button
-                            onClick={() => updateQuantity(item.id, -1)}
-                            className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-secondary transition-colors"
-                          >
-                            <Minus size={12} />
-                          </button>
-                          <span className="w-6 text-center font-body text-xs font-bold">{item.quantity}</span>
-                          <button
-                            onClick={() => updateQuantity(item.id, 1)}
-                            className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-secondary transition-colors"
-                          >
-                            <Plus size={12} />
-                          </button>
-                        </div>
+                        {isDirectBuy ? (
+                          <span className="font-body text-xs font-bold text-muted-foreground">Qty: 1</span>
+                        ) : (
+                          <div className="flex items-center gap-1.5 rounded-full border border-border bg-background p-1">
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                            >
+                              <Minus size={12} />
+                            </button>
+                            <span className="w-6 text-center font-body text-xs font-bold">{item.quantity}</span>
+                            <button
+                              onClick={() => updateQuantity(item.id, 1)}
+                              className="flex h-6 w-6 items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                            >
+                              <Plus size={12} />
+                            </button>
+                          </div>
+                        )}
                         <p className="font-body text-sm font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
@@ -386,7 +421,7 @@ const Checkout = () => {
               <div className="space-y-3 pt-2">
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${cartTotal.toFixed(2)}</span>
+                  <span className="font-medium">${activeTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-muted-foreground">Shipping</span>
@@ -394,7 +429,7 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between font-display text-2xl font-bold pt-4 border-t border-border/50">
                   <span>Total</span>
-                  <span className="text-primary">${cartTotal.toFixed(2)}</span>
+                  <span className="text-primary">${activeTotal.toFixed(2)}</span>
                 </div>
               </div>
 
