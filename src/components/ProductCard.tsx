@@ -1,6 +1,8 @@
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "@/hooks/use-cart";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface ProductCardProps {
   id: string;
@@ -17,6 +19,18 @@ interface ProductCardProps {
 const ProductCard = ({ id, name, shape, price, salePrice, priceRange, image, rating, isNew }: ProductCardProps) => {
   const [liked, setLiked] = useState(false);
   const { addToCart } = useCart();
+  const navigate = useNavigate();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart({ id, name, shape, price: salePrice || price, image });
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart({ id, name, shape, price: salePrice || price, image });
+    navigate("/checkout");
+  };
 
   return (
     <div className="group relative animate-fade-up overflow-hidden rounded-xl bg-card shadow-card transition-all duration-300 hover:shadow-card-hover">
@@ -76,15 +90,24 @@ const ProductCard = ({ id, name, shape, price, salePrice, priceRange, image, rat
               <span className="font-body text-lg font-bold text-foreground">${price.toFixed(2)}</span>
             )}
           </div>
-          <button 
-            onClick={(e) => {
-              e.stopPropagation();
-              addToCart({ id, name, price: salePrice || price, image, shape });
-            }}
-            className="rounded-full bg-primary px-4 py-2 font-body text-xs font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-105"
-          >
-            Add to Bag
-          </button>
+          {name.toLowerCase().includes("custom") ? (
+            <Button
+              size="sm"
+              onClick={handleBuyNow}
+              className="rounded-full px-5 font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95"
+            >
+              Buy Now
+            </Button>
+          ) : (
+            <Button
+              size="icon"
+              onClick={handleAddToCart}
+              className="h-10 w-10 rounded-full shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95"
+              aria-label="Add to bag"
+            >
+              <ShoppingBag size={18} />
+            </Button>
+          )}
         </div>
       </div>
     </div>

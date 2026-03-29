@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { X, ChevronLeft, ChevronRight, Star, Heart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface ProductModalProps {
   id: string;
@@ -19,9 +21,21 @@ const ProductModal = ({ id, name, shape, price, salePrice, priceRange, images, r
   const [currentImg, setCurrentImg] = useState(0);
   const [liked, setLiked] = useState(false);
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   const prev = () => setCurrentImg((i) => (i === 0 ? images.length - 1 : i - 1));
   const next = () => setCurrentImg((i) => (i === images.length - 1 ? 0 : i + 1));
+
+  const handleAddToCart = () => {
+    addToCart({ id, name, shape, price: salePrice || price, image: images[0] });
+    onClose();
+  };
+
+  const handleBuyNow = () => {
+    addToCart({ id, name, shape, price: salePrice || price, image: images[0] });
+    onClose();
+    navigate("/checkout");
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={onClose}>
@@ -117,23 +131,33 @@ const ProductModal = ({ id, name, shape, price, salePrice, priceRange, images, r
               <p className="mt-0.5 font-body text-xs text-muted-foreground">You'll be asked to upload a photo of your hand so Gracie can size your nails perfectly.</p>
             </div>
 
-            <div className="mt-6 flex gap-3">
-              <button 
-                onClick={() => addToCart({ id, name, price: salePrice || price, image: images[0], shape })}
-                className="flex-1 rounded-full bg-primary px-6 py-3 font-body text-sm font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-105"
-              >
-                Add to Bag
-              </button>
-              <button
+            <div className="mt-8 flex gap-3">
+              {name.toLowerCase().includes("custom") ? (
+                <Button
+                  onClick={handleBuyNow}
+                  className="flex-1 rounded-full py-6 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95"
+                >
+                  BUY NOW
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleAddToCart}
+                  className="flex-1 rounded-full py-6 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-transform hover:scale-105 active:scale-95"
+                >
+                  ADD TO BAG
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-auto w-14 shrink-0 rounded-full border-2"
                 onClick={() => setLiked(!liked)}
-                className="flex h-12 w-12 items-center justify-center rounded-full border border-border transition-colors hover:border-primary"
-                aria-label="Add to wishlist"
               >
                 <Heart
-                  size={18}
-                  className={liked ? "fill-destructive text-destructive" : "text-foreground/50"}
+                  size={24}
+                  className={`transition-colors ${liked ? "fill-red-500 text-red-500" : "text-foreground"}`}
                 />
-              </button>
+              </Button>
             </div>
           </div>
         </div>
