@@ -2,12 +2,8 @@ import { useState } from "react";
 
 const shapes = [
   { name: "All", icon: "✦" },
-  { name: "Almond", icon: "💅" },
-  { name: "Oval", icon: "🔮" },
-  { name: "Coffin", icon: "✨" },
-  { name: "Squoval", icon: "💜" },
-  { name: "Round", icon: "🌙" },
-  { name: "Stiletto", icon: "⚡" },
+  { name: "Premade", icon: "💅" },
+  { name: "Custom", icon: "✨" },
 ];
 
 interface ShapeFilterProps {

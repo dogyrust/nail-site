@@ -20,7 +20,7 @@ const products = [
   {
     id: "1",
     name: "Cherry Blossom",
-    shape: "Almond",
+    shape: "Premade",
     price: 26.99,
     images: [nail1, nail4],
     rating: 4.9,
@@ -30,7 +30,7 @@ const products = [
   {
     id: "2",
     name: "Golden Sage",
-    shape: "Almond",
+    shape: "Premade",
     price: 24.99,
     images: [nail2b, nail2, nail6, nail6b],
     rating: 4.9,
@@ -40,7 +40,7 @@ const products = [
   {
     id: "3",
     name: "Lavender Dream",
-    shape: "Almond",
+    shape: "Premade",
     price: 26.99,
     images: [nail7, nail7b, nail5, nail8, nail8b],
     rating: 4.8,
@@ -49,7 +49,7 @@ const products = [
   {
     id: "5",
     name: "Custom Set",
-    shape: "Almond",
+    shape: "Custom",
     price: 25,
     priceRange: "$25 – $40",
     images: [customPlaceholder],
@@ -76,7 +76,7 @@ const ProductGrid = () => {
               Gracie's Best Sellers
             </h2>
             <p className="mt-2 font-body text-muted-foreground">
-              Handcrafted designs — filter by shape
+              Handcrafted designs — filter by type
             </p>
           </div>
 
