@@ -21,7 +21,7 @@ const products = [
     id: "1",
     name: "Cherry Blossom",
     shape: "Premade",
-    price: 26.99,
+    price: 30,
     images: [nail1, nail4],
     rating: 4.9,
     isNew: true,
@@ -31,7 +31,7 @@ const products = [
     id: "2",
     name: "Golden Sage",
     shape: "Premade",
-    price: 24.99,
+    price: 20,
     images: [nail2b, nail2, nail6, nail6b],
     rating: 4.9,
     isNew: true,
@@ -41,7 +41,7 @@ const products = [
     id: "3",
     name: "Lavender Dream",
     shape: "Premade",
-    price: 26.99,
+    price: 25,
     images: [nail7, nail7b, nail5, nail8, nail8b],
     rating: 4.8,
     description: "Soft lavender hues with a satin finish. Minimal and modern, perfect for everyday wear. Each set includes 10 nails, nail glue, and a mini file.",
@@ -59,7 +59,17 @@ const products = [
   },
 ];
 
-type Product = (typeof products)[number] & { priceRange?: string; description?: string };
+interface Product {
+  id: string;
+  name: string;
+  shape: string;
+  price: number;
+  priceRange?: string;
+  images: string[];
+  rating: number;
+  isNew?: boolean;
+  description?: string;
+}
 
 const ProductGrid = () => {
   const [filter, setFilter] = useState("All");
