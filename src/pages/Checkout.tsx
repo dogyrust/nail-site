@@ -469,7 +469,9 @@ const Checkout = () => {
                             </button>
                           </div>
                         )}
-                        <p className="font-body text-sm font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="font-body text-sm font-bold text-primary">
+                          {item.name.toLowerCase().includes('custom') ? '$25-40' : `$${(item.price * item.quantity).toFixed(2)}`}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -481,7 +483,7 @@ const Checkout = () => {
               <div className="space-y-3 pt-2">
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">${activeTotal.toFixed(2)}</span>
+                  <span className="font-medium">{hasCustomSet && isDirectBuy ? '$25-40' : `$${activeTotal.toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between font-body text-sm">
                   <span className="text-muted-foreground">Shipping</span>
@@ -491,7 +493,11 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between font-display text-2xl font-bold pt-4 border-t border-border/50">
                   <span>Total</span>
-                  <span className="text-primary">${orderTotal.toFixed(2)}</span>
+                  <span className="text-primary">
+                    {hasCustomSet && isDirectBuy
+                      ? shippingCost > 0 ? `$${(25 + shippingCost).toFixed(2)}-$${(40 + shippingCost).toFixed(2)}` : '$25-40'
+                      : `$${orderTotal.toFixed(2)}`}
+                  </span>
                 </div>
               </div>
 
