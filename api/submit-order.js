@@ -1,10 +1,18 @@
 import nodemailer from "nodemailer";
 
+const parseBody = (req) =>
+  new Promise((resolve, reject) => {
+    let data = "";
+    req.on("data", (chunk) => { data += chunk; });
+    req.on("end", () => { try { resolve(JSON.parse(data)); } catch (e) { reject(e); } });
+    req.on("error", reject);
+  });
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   try {
-    const { name, email, cashapp, address, state, shippingCost, orderTotal, items, customDesc, photos } = req.body;
+    const { name, email, cashapp, address, state, shippingCost, orderTotal, items, customDesc, photos } = await parseBody(req);
 
     const row = (label, value) =>
       `<tr><td style="padding:8px;border:1px solid #eee;font-weight:bold">${label}</td><td style="padding:8px;border:1px solid #eee">${value}</td></tr>`;
