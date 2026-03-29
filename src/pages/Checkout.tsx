@@ -53,27 +53,24 @@ const Checkout = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // FormSubmit requires enctype="multipart/form-data" for files, so we build it dynamically
+    // Netlify Forms submission with file upload support
     const formData = new FormData();
-    formData.append("_subject", `New Nail Order from ${customerDetails.name}`);
-    formData.append("_captcha", "false");
-    // This allows files to be sent as actual attachments in the email
-    formData.append("_template", "table");
+    formData.append("form-name", "nail-order");
     
     formData.append("Name", customerDetails.name);
     formData.append("Email", customerDetails.email);
-    formData.append("CashApp Username", customerDetails.cashapp);
-    formData.append("Shipping Address", customerDetails.address);
-    formData.append("Order Total", `$${activeTotal.toFixed(2)}`);
+    formData.append("CashApp_Username", customerDetails.cashapp);
+    formData.append("Shipping_Address", customerDetails.address);
+    formData.append("Order_Total", `$${activeTotal.toFixed(2)}`);
     
     // Format items
     const itemsList = activeItems.map(item => 
       `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
-    ).join('\n');
-    formData.append("Items Ordered", itemsList);
+    ).join(', ');
+    formData.append("Items_Ordered", itemsList);
 
     if (hasCustomSet) {
-      formData.append("Custom Nail Description", customDescription);
+      formData.append("Custom_Nail_Description", customDescription);
     }
 
     if (handPhoto) {
@@ -91,14 +88,12 @@ const Checkout = () => {
     }
 
     try {
-      const response = await fetch("https://formsubmit.co/gracies.nails08@gmail.com", {
+      const response = await fetch("/", {
         method: "POST",
         body: formData
       });
 
-      // Formsubmit redirects on success by default unless ajax is used, but ajax doesn't support files well.
-      // Since we don't want a redirect, we check if it went through.
-      if (response.ok || response.type === 'opaque') {
+      if (response.ok) {
         import("sonner").then(({ toast }) => {
           toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
         });
