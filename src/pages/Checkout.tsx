@@ -115,10 +115,12 @@ const Checkout = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error('Server error');
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
       import('sonner').then(({ toast }) => toast.success("Order placed! We'll be in touch soon. 💜"));
-    } catch {
-      import('sonner').then(({ toast }) => toast.error('Something went wrong. Please email gracies.nails08@gmail.com directly.'));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      import('sonner').then(({ toast }) => toast.error(`Error: ${msg}`, { duration: 15000 }));
     }
 
     setIsSubmitting(false);
