@@ -11,6 +11,12 @@ const parseBody = (req) =>
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    return res.status(500).json({
+      error: `Env vars missing — GMAIL_USER: ${!!process.env.GMAIL_USER}, GMAIL_APP_PASSWORD: ${!!process.env.GMAIL_APP_PASSWORD}`
+    });
+  }
+
   try {
     const { name, email, cashapp, address, state, shippingCost, orderTotal, items, customDesc, photos } = await parseBody(req);
 
