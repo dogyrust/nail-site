@@ -61,86 +61,20 @@ const Checkout = () => {
     );
   }
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const itemsList = activeItems.map(item =>
+    `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
+  ).join(', ');
+
+  const handleFinalSubmit = (e: React.FormEvent) => {
+    const isValid = !!(customerDetails.name && customerDetails.email &&
+      customerDetails.address && customerDetails.state && customerDetails.cashapp &&
+      handPhoto && handPhoto2 && (!hasCustomSet || customDescription));
+    if (!isValid) {
+      e.preventDefault();
+      return;
+    }
     setIsSubmitting(true);
-    
-    // Netlify Forms submission with file upload support
-    const formData = new FormData();
-    formData.append("form-name", "nail-order");
-    
-    formData.append("Name", customerDetails.name);
-    formData.append("Email", customerDetails.email);
-    formData.append("CashApp_Username", customerDetails.cashapp);
-    formData.append("Shipping_Address", customerDetails.address);
-    formData.append("State", customerDetails.state);
-    formData.append("Shipping_Cost", shippingCost === 0 ? 'TBD (no state selected)' : `$${shippingCost.toFixed(2)}`);
-    formData.append("Order_Total", `$${orderTotal.toFixed(2)}`);
-    
-    // Format items
-    const itemsList = activeItems.map(item => 
-      `${item.quantity}x ${item.name} (${item.shape}) - $${(item.price * item.quantity).toFixed(2)}`
-    ).join(', ');
-    formData.append("Items_Ordered", itemsList);
-
-    if (hasCustomSet) {
-      formData.append("Custom_Nail_Description", customDescription);
-    }
-
-    if (handPhoto) {
-      formData.append("Hand_Photo_1", handPhoto, handPhoto.name);
-    }
-
-    if (handPhoto2) {
-      formData.append("Hand_Photo_2", handPhoto2, handPhoto2.name);
-    }
-
-    if (inspoPhotos.length > 0) {
-      inspoPhotos.forEach((photo, index) => {
-        formData.append(`Inspiration_Photo_${index + 1}`, photo, photo.name);
-      });
-    }
-
-    try {
-      const response = await fetch("/", {
-        method: "POST",
-        body: formData
-      });
-
-      if (response.ok) {
-        import("sonner").then(({ toast }) => {
-          toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
-        });
-        
-        setIsSubmitting(false);
-        setCustomerDetails({ name: '', email: '', address: '', state: '', cashapp: '' });
-        setHandPhoto(null);
-        setHandPhoto2(null);
-        setCustomDescription('');
-        setInspoPhotos([]);
-        if (!isDirectBuy) {
-          clearCart();
-        }
-        navigate("/");
-      } else {
-        throw new Error('Form submission failed');
-      }
-    } catch (error) {
-      // If it throws a CORS error (common with FormSubmit fetch without ajax), we can assume it actually worked
-      import("sonner").then(({ toast }) => {
-        toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
-      });
-      setIsSubmitting(false);
-      setCustomerDetails({ name: '', email: '', address: '', state: '', cashapp: '' });
-      setHandPhoto(null);
-      setHandPhoto2(null);
-      setCustomDescription('');
-      setInspoPhotos([]);
-      if (!isDirectBuy) {
-        clearCart();
-      }
-      navigate("/");
-    }
+    // Native multipart POST to FormSubmit.co — browser attaches files automatically
   };
 
   return (
@@ -153,7 +87,20 @@ const Checkout = () => {
         Back to Shop
       </Link>
 
-      <form onSubmit={handleFinalSubmit} className="grid grid-cols-1 gap-12 lg:grid-cols-12" encType="multipart/form-data">
+      <form
+        onSubmit={handleFinalSubmit}
+        action="https://formsubmit.co/gracies.nails08@gmail.com"
+        method="POST"
+        encType="multipart/form-data"
+        className="grid grid-cols-1 gap-12 lg:grid-cols-12"
+      >
+        <input type="hidden" name="_subject" value={`New Nail Order from ${customerDetails.name || 'a customer'}`} />
+        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="_template" value="table" />
+        <input type="hidden" name="_next" value={window.location.origin + '/'} />
+        <input type="hidden" name="Shipping_Cost" value={shippingCost > 0 ? `$${shippingCost.toFixed(2)}` : 'TBD'} />
+        <input type="hidden" name="Order_Total" value={`$${orderTotal.toFixed(2)}`} />
+        <input type="hidden" name="Items_Ordered" value={itemsList} />
         {/* Checkout Form */}
         <div className="lg:col-span-7 space-y-10 animate-fade-up">
           <div>
@@ -172,7 +119,8 @@ const Checkout = () => {
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
                   <Input 
-                    id="name" 
+                    id="name"
+                    name="Name"
                     placeholder="Johnny Doey" 
                     value={customerDetails.name} 
                     onChange={(e) => setCustomerDetails({...customerDetails, name: e.target.value})} 
@@ -182,8 +130,9 @@ const Checkout = () => {
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-semibold">Email Address</Label>
                   <Input 
-                    id="email" 
-                    type="email" 
+                    id="email"
+                    name="Email"
+                    type="email"
                     placeholder="johnny@example.com" 
                     value={customerDetails.email} 
                     onChange={(e) => setCustomerDetails({...customerDetails, email: e.target.value})} 
@@ -195,6 +144,7 @@ const Checkout = () => {
                 <Label htmlFor="cashapp" className="text-sm font-semibold">CashApp Username <span className="text-destructive">*</span></Label>
                 <Input
                   id="cashapp"
+                  name="CashApp_Username"
                   placeholder="$YourCashTag"
                   value={customerDetails.cashapp}
                   onChange={(e) => setCustomerDetails({...customerDetails, cashapp: e.target.value})}
@@ -204,7 +154,8 @@ const Checkout = () => {
               <div className="space-y-2">
                 <Label htmlFor="address" className="text-sm font-semibold">Shipping Address <span className="text-destructive">*</span></Label>
                 <Textarea 
-                  id="address" 
+                  id="address"
+                  name="Shipping_Address"
                   placeholder="123 Main St, Portland, ME 04101" 
                   value={customerDetails.address} 
                   onChange={(e) => setCustomerDetails({...customerDetails, address: e.target.value})} 
@@ -215,6 +166,7 @@ const Checkout = () => {
                 <Label htmlFor="state" className="text-sm font-semibold">State <span className="text-destructive">*</span></Label>
                 <select
                   id="state"
+                  name="State"
                   value={customerDetails.state}
                   onChange={(e) => setCustomerDetails({...customerDetails, state: e.target.value})}
                   className="h-12 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -260,7 +212,7 @@ const Checkout = () => {
                 <div className="grid grid-cols-2 gap-3 mt-2">
                   {/* Photo 1 */}
                   <div className="relative">
-                    <input id="handPhoto" type="file" accept="image/*" className="hidden" onChange={(e) => setHandPhoto(e.target.files?.[0] ?? null)} />
+                    <input id="handPhoto" name="Hand_Photo_1" type="file" accept="image/*" className="hidden" onChange={(e) => setHandPhoto(e.target.files?.[0] ?? null)} />
                     <label htmlFor="handPhoto" className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-3 py-6 transition-all ${ handPhoto ? 'border-primary bg-primary/5' : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5' }`}>
                       {handPhoto ? (
                         <>
@@ -278,7 +230,7 @@ const Checkout = () => {
                   </div>
                   {/* Photo 2 */}
                   <div className="relative">
-                    <input id="handPhoto2" type="file" accept="image/*" className="hidden" onChange={(e) => setHandPhoto2(e.target.files?.[0] ?? null)} />
+                    <input id="handPhoto2" name="Hand_Photo_2" type="file" accept="image/*" className="hidden" onChange={(e) => setHandPhoto2(e.target.files?.[0] ?? null)} />
                     <label htmlFor="handPhoto2" className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-3 py-6 transition-all ${ handPhoto2 ? 'border-primary bg-primary/5' : 'border-border bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5' }`}>
                       {handPhoto2 ? (
                         <>
@@ -315,7 +267,8 @@ const Checkout = () => {
                     Describe your dream nails! Mention colors, themes, patterns, or specific designs you want. (Price will be finalized between $25-$40 based on complexity).
                   </p>
                   <Textarea 
-                    id="customDesc" 
+                    id="customDesc"
+                    name="Custom_Nail_Description"
                     placeholder="E.g., I want an aura effect with hot pink and black, plus some silver star charms..." 
                     value={customDescription} 
                     onChange={(e) => setCustomDescription(e.target.value)} 
@@ -334,6 +287,7 @@ const Checkout = () => {
                   <div className="relative mt-2">
                     <input
                       id="inspoPhotos"
+                      name="Inspiration_Photo"
                       type="file"
                       accept="image/*"
                       multiple
