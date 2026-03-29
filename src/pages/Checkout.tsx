@@ -377,13 +377,13 @@ const Checkout = () => {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground font-medium">CashApp Tag</p>
-                    <span className="font-mono font-bold text-xl tracking-tight">$YourCashTag</span>
+                    <span className="font-mono font-bold text-xl tracking-tight">$gracesnails2</span>
                   </div>
                 </div>
                 
                 <Button 
                   className="w-full sm:w-auto bg-[#00D632] text-white hover:bg-[#00b52a] border-none font-bold rounded-full px-6" 
-                  onClick={() => window.open('https://cash.app/$YourCashTag', '_blank')}
+                  onClick={() => window.open('https://cash.app/$gracesnails2', '_blank')}
                 >
                   Open CashApp
                 </Button>
