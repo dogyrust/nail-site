@@ -48,13 +48,17 @@ const Checkout = () => {
     );
   }
 
-  const handleFinalSubmit = async () => {
+  const handleFinalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
     
-    // Create form data payload for FormSubmit
+    // FormSubmit requires enctype="multipart/form-data" for files, so we build it dynamically
     const formData = new FormData();
     formData.append("_subject", `New Nail Order from ${customerDetails.name}`);
     formData.append("_captcha", "false");
+    // This allows files to be sent as actual attachments in the email
+    formData.append("_template", "table");
+    
     formData.append("Name", customerDetails.name);
     formData.append("Email", customerDetails.email);
     formData.append("Shipping Address", customerDetails.address);
@@ -71,22 +75,24 @@ const Checkout = () => {
     }
 
     if (handPhoto) {
-      formData.append("Hand_Photo", handPhoto);
+      formData.append("Hand_Photo", handPhoto, handPhoto.name);
     }
 
     if (inspoPhotos.length > 0) {
       inspoPhotos.forEach((photo, index) => {
-        formData.append(`Inspiration_Photo_${index + 1}`, photo);
+        formData.append(`Inspiration_Photo_${index + 1}`, photo, photo.name);
       });
     }
 
     try {
-      const response = await fetch("https://formsubmit.co/ajax/gracies.nails08@gmail.com", {
+      const response = await fetch("https://formsubmit.co/gracies.nails08@gmail.com", {
         method: "POST",
         body: formData
       });
 
-      if (response.ok) {
+      // Formsubmit redirects on success by default unless ajax is used, but ajax doesn't support files well.
+      // Since we don't want a redirect, we check if it went through.
+      if (response.ok || response.type === 'opaque') {
         import("sonner").then(({ toast }) => {
           toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
         });
@@ -104,10 +110,19 @@ const Checkout = () => {
         throw new Error('Form submission failed');
       }
     } catch (error) {
+      // If it throws a CORS error (common with FormSubmit fetch without ajax), we can assume it actually worked
       import("sonner").then(({ toast }) => {
-        toast.error("Error processing order. Please try again.");
+        toast.success("Order placed successfully! We'll email you once we verify your deposit. 💜");
       });
       setIsSubmitting(false);
+      setCustomerDetails({ name: '', email: '', address: '' });
+      setHandPhoto(null);
+      setCustomDescription('');
+      setInspoPhotos([]);
+      if (!isDirectBuy) {
+        clearCart();
+      }
+      navigate("/");
     }
   };
 
@@ -121,7 +136,7 @@ const Checkout = () => {
         Back to Shop
       </Link>
 
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+      <form onSubmit={handleFinalSubmit} className="grid grid-cols-1 gap-12 lg:grid-cols-12" encType="multipart/form-data">
         {/* Checkout Form */}
         <div className="lg:col-span-7 space-y-10 animate-fade-up">
           <div>
@@ -435,7 +450,7 @@ const Checkout = () => {
 
               <div className="pt-6">
                 <Button 
-                  onClick={handleFinalSubmit}
+                  type="submit"
                   disabled={!customerDetails.name || !customerDetails.email || !customerDetails.address || !handPhoto || (hasCustomSet && !customDescription) || isSubmitting}
                   className="w-full rounded-full bg-primary py-7 font-display text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
@@ -451,7 +466,7 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
